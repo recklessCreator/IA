@@ -10,7 +10,10 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_openai import ChatOpenAI
 
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+if "OPENAI_API_KEY" in st.secrets:
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+else:
+    st.error("API Key não encontrada. Verifique a configuração em Settings > Secrets.")
     
 # Configurando pagina web
 st.set_page_config(
