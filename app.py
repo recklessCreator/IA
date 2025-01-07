@@ -14,7 +14,7 @@ from langchain_openai import ChatOpenAI
 st.set_page_config(
     page_title="Estoque",
     page_icon="📸",
-    layout="wide
+    layout="wide"
 )
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
