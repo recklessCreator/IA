@@ -18,10 +18,7 @@ st.set_page_config(
 )
 
 # Configurando a chave da API OpenAI
-try:
-    openai.api_key = st.secrets["OPENAI_API_KEY"]
-except KeyError:
-    st.error("Chave da API OpenAI não encontrada no arquivo de configurações. Verifique 'Secrets' no Streamlit Cloud.")
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Cabeçalho da página
 st.header("Assistente de Estoque")
