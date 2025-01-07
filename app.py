@@ -1,5 +1,6 @@
 import os
 import streamlit as st
+from dotenv import load_dotenv
 from decouple import config
 from langchain import hub
 from langchain.agents import create_react_agent, AgentExecutor
@@ -8,8 +9,12 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_openai import ChatOpenAI
 
-os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
+if not openai_api_key:
+    raise ValueError("Chave API do OpenAI não encontrada!")
+    
 # Configurando pagina web
 st.set_page_config(
     page_title="Estoque",
