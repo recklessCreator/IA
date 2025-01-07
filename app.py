@@ -10,15 +10,16 @@ from langchain_openai import ChatOpenAI
 
 os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
 
-# Configurando pagina web
+# Configurando página web
 st.set_page_config(
     page_title="Estoque",
     page_icon="📸",
 )
+
 # Cabeçalho da página
 st.header("Assistente de Estoque")
 
-# listar modelo e opções de LLM em um menu
+# Listar modelo e opções de LLM em um menu
 model_options = [
     "gpt-3.5-turbo",
     "gpt-4",
@@ -38,8 +39,10 @@ st.sidebar.markdown(
 st.sidebar.markdown(
     "Este agente utiliza da inteligência artificial para consultar um banco de dados de estoque."
 )
+
 # Conversando com o usuário
 st.write("Faça perguntas sobre o estoque de produtos, preços e reposições.")
+
 # Input do usuário
 UserQuestion = st.text_input("O que deseja saber sobre o estoque?")
 
@@ -51,11 +54,12 @@ model = ChatOpenAI(
 # Conectando ao banco de dados
 data = SQLDatabase.from_uri("sqlite:///estoque.db")
 
-# Criando toolkit do database SQL
+# Criando toolkit do banco de dados SQL
 toolkit = SQLDatabaseToolkit(
     db=data,
     llm=model,
 )
+
 system_message = hub.pull("hwchase17/react")
 
 # Criando o agente
@@ -69,29 +73,33 @@ agent_executor = AgentExecutor(
     agent=agent,
     tools=toolkit.get_tools(),
     verbose=True,
+    handle_parsing_errors=True  # Permitir que o agente tente novamente em caso de erro de parsing
 )
 
-# Criando prompt para perguntar
+# Criando o prompt para perguntar
 prompt = """
-Use as ferramentas mecessárias para responder perguntas relacionadas ao estoque de produtos.
+Use as ferramentas necessárias para responder perguntas relacionadas ao estoque de produtos.
 Você fornecerá insights sobre produtos, preços, reposição de estoque e relatórios conforme solicitado
-pelo usuário. A resposta final deve ter uma formatação amigável de visualização para o usuário.
-Sempre responsa em português brasileiro.
+pelo usuário. A resposta final deve ser concisa, clara e amigável, e formatada como um resumo direto.
+Sempre responda em português brasileiro.
 Pergunta: {pergunta}
 """
 
 prompt_template = PromptTemplate.from_template(prompt)
 
-# criando botão de consultar
+# Criando botão de consultar
 if st.button("Consultar"):
     if UserQuestion:
         # Icone de carregamento
         with st.spinner("Consultando o banco de dados..."):
             formatted_prompt = prompt_template.format(pergunta=UserQuestion)
-            output = agent_executor.invoke(
-                {"input": formatted_prompt}
-            )
-        # Renderizando texto ao usuário
-        st.markdown(output.get("output"))
+            response = agent_executor.invoke({"input": formatted_prompt})
+
+            # Acessando a chave 'output' e exibindo apenas o conteúdo dela
+            if isinstance(response, dict) and 'output' in response:
+                # Exibindo apenas o conteúdo da resposta, sem a estrutura
+                st.markdown(response['output'])
+            else:
+                st.warning("Resposta não encontrada ou no formato esperado.")
     else:
-        st.warning("Por favor, faça uma pergunta")
+        st.warning("Por favor, faça uma pergunta.")
