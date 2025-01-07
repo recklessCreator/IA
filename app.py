@@ -10,7 +10,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_openai import ChatOpenAI
 
-openai.api_key = "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"
+openai.api_key = st.secrets["OPENAI_API_KEY"]
     
 # Configurando pagina web
 st.set_page_config(
