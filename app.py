@@ -1,4 +1,4 @@
-import os
+aimport os
 import streamlit as st
 from dotenv import load_dotenv
 from decouple import config
@@ -9,11 +9,7 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_openai import ChatOpenAI
 
-load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
-if not openai_api_key:
-    raise ValueError("Chave API do OpenAI não encontrada!")
+openai.api_key = "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"
     
 # Configurando pagina web
 st.set_page_config(
