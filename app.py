@@ -98,17 +98,11 @@ if st.button("Consultar"):
             # Exibindo a resposta completa para inspeção (debugging)
             st.write("Estrutura da resposta:", response)
 
-            # Tentando verificar diferentes chaves que podem conter a resposta final
-            if isinstance(response, dict):
-                # Se a resposta for um dicionário, verificamos as possíveis chaves
-                if 'text' in response:
-                    st.markdown(response['text'])
-                elif 'output' in response:
-                    st.markdown(response['output'])
-                else:
-                    st.warning("Resposta não encontrada em 'text' ou 'output'. Resposta: " + str(response))
+            # Acessando a chave 'output' para capturar a resposta final
+            if isinstance(response, dict) and 'output' in response:
+                # Exibindo a resposta contida na chave 'output'
+                st.markdown(response['output'])
             else:
-                # Caso a resposta não seja um dicionário, vamos imprimir diretamente
-                st.warning(f"A resposta não foi um dicionário. Resposta: {response}")
+                st.warning("Resposta não encontrada ou no formato esperado.")
     else:
         st.warning("Por favor, faça uma pergunta.")
