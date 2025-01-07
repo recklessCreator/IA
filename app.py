@@ -83,7 +83,10 @@ Você fornecerá insights sobre produtos, preços, reposição de estoque e rela
 pelo usuário. A resposta final deve ser concisa, clara e amigável, e formatada como um resumo direto.
 Sempre responda em português brasileiro.
 Pergunta: {pergunta}
+
+Por favor, forneça apenas a resposta final sem explicações adicionais.
 """
+
 
 prompt_template = PromptTemplate.from_template(prompt)
 
