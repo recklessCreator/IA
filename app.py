@@ -94,18 +94,21 @@ if st.button("Consultar"):
         with st.spinner("Consultando o banco de dados..."):
             formatted_prompt = prompt_template.format(pergunta=UserQuestion)
             response = agent_executor.invoke({"input": formatted_prompt})
-            
+
             # Exibindo a resposta completa para inspeção (debugging)
             st.write("Estrutura da resposta:", response)
 
-            # Tentando acessar a resposta no formato correto
-            if 'text' in response:
-                st.markdown(response['text'])
-            elif 'output' in response:
-                # Caso a resposta esteja em 'output'
-                st.markdown(response['output'])
+            # Tentando verificar diferentes chaves que podem conter a resposta final
+            if isinstance(response, dict):
+                # Se a resposta for um dicionário, verificamos as possíveis chaves
+                if 'text' in response:
+                    st.markdown(response['text'])
+                elif 'output' in response:
+                    st.markdown(response['output'])
+                else:
+                    st.warning("Resposta não encontrada em 'text' ou 'output'. Resposta: " + str(response))
             else:
-                # Caso a chave correta não seja encontrada, mostrando a resposta inteira
-                st.warning("Resposta não encontrada no formato esperado.")
+                # Caso a resposta não seja um dicionário, vamos imprimir diretamente
+                st.warning(f"A resposta não foi um dicionário. Resposta: {response}")
     else:
         st.warning("Por favor, faça uma pergunta.")
