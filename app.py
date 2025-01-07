@@ -14,7 +14,9 @@ if "OPENAI_API_KEY" in st.secrets:
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 else:
     st.error("API Key não encontrada. Verifique a configuração em Settings > Secrets.")
-    
+
+st.write(st.secrets)  # Exibe os secrets configurados no painel
+
 # Configurando pagina web
 st.set_page_config(
     page_title="Estoque",
