@@ -8,10 +8,9 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_openai import ChatOpenAI
 
-# Configurar a chave da API do OpenAI
 os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
 
-# Configurando página do Streamlit
+# Configurando página web
 st.set_page_config(
     page_title="Estoque",
     page_icon="📸",
@@ -20,7 +19,7 @@ st.set_page_config(
 # Cabeçalho da página
 st.header("Assistente de Estoque")
 
-# Menu de seleção de modelo
+# Listar modelo e opções de LLM em um menu
 model_options = [
     "gpt-3.5-turbo",
     "gpt-4",
@@ -34,34 +33,36 @@ selected_model = st.sidebar.selectbox(
     options=model_options,
 )
 
-# Sobre o sistema
-st.sidebar.markdown("### Sobre o Sistema")
+st.sidebar.markdown(
+    "### Sobre o Sistema"
+)
 st.sidebar.markdown(
     "Este agente utiliza da inteligência artificial para consultar um banco de dados de estoque."
 )
 
-# Pergunta do usuário
+# Conversando com o usuário
 st.write("Faça perguntas sobre o estoque de produtos, preços e reposições.")
+
+# Input do usuário
 UserQuestion = st.text_input("O que deseja saber sobre o estoque?")
 
-# Modelo selecionado pelo usuário
+# Modelo que o usuário quer usar
 model = ChatOpenAI(
     model=selected_model,
 )
 
-# Conectar ao banco de dados SQLite
+# Conectando ao banco de dados
 data = SQLDatabase.from_uri("sqlite:///estoque.db")
 
-# Criar toolkit para consultar o banco de dados
+# Criando toolkit do banco de dados SQL
 toolkit = SQLDatabaseToolkit(
     db=data,
     llm=model,
 )
 
-# Carregar o modelo do sistema
 system_message = hub.pull("hwchase17/react")
 
-# Criar o agente de consulta
+# Criando o agente
 agent = create_react_agent(
     llm=model,
     tools=toolkit.get_tools(),
@@ -72,10 +73,10 @@ agent_executor = AgentExecutor(
     agent=agent,
     tools=toolkit.get_tools(),
     verbose=True,
-    handle_parsing_errors=True
+    handle_parsing_errors=True  # Permitir que o agente tente novamente em caso de erro de parsing
 )
 
-# Criando o prompt
+# Criando o prompt para perguntar
 prompt = """
 Use as ferramentas necessárias para responder perguntas relacionadas ao estoque de produtos.
 Você fornecerá insights sobre produtos, preços, reposição de estoque e relatórios conforme solicitado
@@ -86,17 +87,25 @@ Pergunta: {pergunta}
 
 prompt_template = PromptTemplate.from_template(prompt)
 
-# Botão de consulta
+# Criando botão de consultar
 if st.button("Consultar"):
     if UserQuestion:
-        # Ícone de carregamento
+        # Icone de carregamento
         with st.spinner("Consultando o banco de dados..."):
-            try:
-                response = agent_executor.invoke({"input": formatted_prompt})
-                # Tentando extrair a última parte da resposta onde a conclusão final está
-                final_answer = response.get('text', '').split('Resposta Final:')[-1].strip()
-                st.markdown(final_answer)
-            except Exception as e:
-                st.error(f"Erro ao processar a consulta: {e}")
+            formatted_prompt = prompt_template.format(pergunta=UserQuestion)
+            response = agent_executor.invoke({"input": formatted_prompt})
+            
+            # Exibindo a resposta completa para inspeção (debugging)
+            st.write("Estrutura da resposta:", response)
+
+            # Tentando acessar a resposta no formato correto
+            if 'text' in response:
+                st.markdown(response['text'])
+            elif 'output' in response:
+                # Caso a resposta esteja em 'output'
+                st.markdown(response['output'])
+            else:
+                # Caso a chave correta não seja encontrada, mostrando a resposta inteira
+                st.warning("Resposta não encontrada no formato esperado.")
     else:
         st.warning("Por favor, faça uma pergunta.")
