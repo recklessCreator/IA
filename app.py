@@ -79,7 +79,7 @@ agent_executor = AgentExecutor(
 prompt = """
 Use as ferramentas necessárias para responder perguntas relacionadas ao estoque de produtos.
 Você fornecerá insights sobre produtos, preços, reposição de estoque e relatórios conforme solicitado
-pelo usuário. A resposta final deve ter uma formatação amigável de visualização para o usuário.
+pelo usuário. A resposta final deve ser concisa, clara e amigável, e formatada como um resumo direto.
 Sempre responda em português brasileiro.
 Pergunta: {pergunta}
 """
@@ -92,11 +92,10 @@ if st.button("Consultar"):
         # Ícone de carregamento
         with st.spinner("Consultando o banco de dados..."):
             try:
-                formatted_prompt = prompt_template.format(pergunta=UserQuestion)
-                # Invocar o agente
                 response = agent_executor.invoke({"input": formatted_prompt})
-                # Renderizar resposta
-                st.markdown(response['text'])  # Ajuste conforme a estrutura da resposta
+                # Tentando extrair a última parte da resposta onde a conclusão final está
+                final_answer = response.get('text', '').split('Resposta Final:')[-1].strip()
+                st.markdown(final_answer)
             except Exception as e:
                 st.error(f"Erro ao processar a consulta: {e}")
     else:
