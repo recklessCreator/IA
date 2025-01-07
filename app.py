@@ -10,24 +10,23 @@ from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_openai import ChatOpenAI
 
-# Configurando pagina web
+# Configurando a página do Streamlit
 st.set_page_config(
-    page_title="Estoque",
-    page_icon="📸",
-    layout="wide"
+    page_title="Assistente de Estoque",
+    page_icon="📦",
+    layout="wide",
 )
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-response = openai.Completion.create(
-    engine="text-davinci-003",
-    prompt="Escreva uma breve descrição de um erro.",
-    max_tokens=50
-)
-print(response)
+
+# Configurando a chave da API OpenAI
+try:
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+except KeyError:
+    st.error("Chave da API OpenAI não encontrada no arquivo de configurações. Verifique 'Secrets' no Streamlit Cloud.")
 
 # Cabeçalho da página
 st.header("Assistente de Estoque")
 
-# listar modelo e opções de LLM em um menu
+# Listar modelos de LLM disponíveis
 model_options = [
     "gpt-3.5-turbo",
     "gpt-4",
@@ -41,66 +40,78 @@ selected_model = st.sidebar.selectbox(
     options=model_options,
 )
 
+# Informações adicionais na barra lateral
+st.sidebar.markdown("### Sobre o Sistema")
 st.sidebar.markdown(
-    "### Sobre o Sistema"
+    "Este agente utiliza inteligência artificial para consultar um banco de dados de estoque."
 )
-st.sidebar.markdown(
-    "Este agente utiliza da inteligência artificial para consultar um banco de dados de estoque."
-)
-# Conversando com o usuário
-st.write("Faça perguntas sobre o estoque de produtos, preços e reposições.")
-# Input do usuário
+
+# Entrada do usuário
 UserQuestion = st.text_input("O que deseja saber sobre o estoque?")
 
-# Modelo que o usuário quer usar
+# Configurando o modelo selecionado
 model = ChatOpenAI(
     model=selected_model,
 )
 
-# Conectando ao banco de dados
-data = SQLDatabase.from_uri("sqlite:///estoque.db")
+# Conectando ao banco de dados SQLite
+try:
+    data = SQLDatabase.from_uri("sqlite:///estoque.db")
+except Exception as e:
+    st.error(f"Erro ao conectar ao banco de dados: {e}")
 
-# Criando toolkit do database SQL
+# Criando o toolkit SQL
 toolkit = SQLDatabaseToolkit(
     db=data,
     llm=model,
 )
-system_message = hub.pull("hwchase17/react")
+
+# Sistema de mensagens do agente
+try:
+    system_message = hub.pull("hwchase17/react")
+except Exception as e:
+    st.error(f"Erro ao carregar sistema de mensagens: {e}")
 
 # Criando o agente
-agent = create_react_agent(
-    llm=model,
-    tools=toolkit.get_tools(),
-    prompt=system_message,
-)
+try:
+    agent = create_react_agent(
+        llm=model,
+        tools=toolkit.get_tools(),
+        prompt=system_message,
+    )
 
-agent_executor = AgentExecutor(
-    agent=agent,
-    tools=toolkit.get_tools(),
-    verbose=True,
-)
+    agent_executor = AgentExecutor(
+        agent=agent,
+        tools=toolkit.get_tools(),
+        verbose=True,
+    )
+except Exception as e:
+    st.error(f"Erro ao configurar o agente: {e}")
 
-# Criando prompt para perguntar
+# Template do prompt
 prompt = """
-Use as ferramentas mecessárias para responder perguntas relacionadas ao estoque de produtos.
+Use as ferramentas necessárias para responder perguntas relacionadas ao estoque de produtos.
 Você fornecerá insights sobre produtos, preços, reposição de estoque e relatórios conforme solicitado
 pelo usuário. A resposta final deve ter uma formatação amigável de visualização para o usuário.
-Sempre responsa em português brasileiro.
+Sempre responda em português brasileiro.
 Pergunta: {pergunta}
 """
 
 prompt_template = PromptTemplate.from_template(prompt)
 
-# criando botão de consultar
+# Botão para consultar
 if st.button("Consultar"):
     if UserQuestion:
-        # Icone de carregamento
+        # Ícone de carregamento
         with st.spinner("Consultando o banco de dados..."):
-            formatted_prompt = prompt_template.format(pergunta=UserQuestion)
-            output = agent_executor.invoke(
-                {"input": formatted_prompt}
-            )
-        # Renderizando texto ao usuário
-        st.markdown(output.get("output"))
+            try:
+                formatted_prompt = prompt_template.format(pergunta=UserQuestion)
+                output = agent_executor.invoke(
+                    {"input": formatted_prompt}
+                )
+                # Exibir resultado
+                st.markdown(output.get("output"))
+            except Exception as e:
+                st.error(f"Erro ao executar a consulta: {e}")
     else:
-        st.warning("Por favor, faça uma pergunta")
+        st.warning("Por favor, insira uma pergunta.")
