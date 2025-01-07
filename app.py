@@ -17,6 +17,12 @@ st.set_page_config(
     layout="wide"
 )
 openai.api_key = st.secrets["OPENAI_API_KEY"]
+response = openai.Completion.create(
+    engine="text-davinci-003",
+    prompt="Escreva uma breve descrição de um erro.",
+    max_tokens=50
+)
+print(response)
 
 # Cabeçalho da página
 st.header("Assistente de Estoque")
