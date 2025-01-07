@@ -95,12 +95,9 @@ if st.button("Consultar"):
             formatted_prompt = prompt_template.format(pergunta=UserQuestion)
             response = agent_executor.invoke({"input": formatted_prompt})
 
-            # Exibindo a resposta completa para inspeção (debugging)
-            st.write("Estrutura da resposta:", response)
-
-            # Acessando a chave 'output' para capturar a resposta final
+            # Acessando a chave 'output' e exibindo apenas o conteúdo dela
             if isinstance(response, dict) and 'output' in response:
-                # Exibindo a resposta contida na chave 'output'
+                # Exibindo apenas o conteúdo da resposta, sem a estrutura
                 st.markdown(response['output'])
             else:
                 st.warning("Resposta não encontrada ou no formato esperado.")
